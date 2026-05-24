@@ -1,0 +1,39 @@
+# 环境变量与密钥（绝对不能上传）
+.env
+.env.*
+!.env.example
+
+# Python 虚拟环境
+.venv/
+venv/
+env/
+
+# Python 缓存
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# 输出文件（生成物，不纳入版本控制）
+output/
+
+# macOS 系统文件
+.DS_Store
+**/.DS_Store
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# 测试用 CPT 文件（可能含敏感业务数据）
+tests/sample_cpts/
+
+# 日志
+*.log
+logs/
+
+# devlog 中的 JSON 调试文件
+devlog/*.json
