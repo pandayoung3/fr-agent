@@ -23,11 +23,11 @@ sys.path.insert(0, str(ROOT))
 # ── 加载 .env ──
 _env_path = ROOT / ".env"
 if _env_path.exists():
-    for _line in _env_path.read_text().splitlines():
+    for _line in _env_path.read_text(encoding="utf-8-sig").splitlines():
         _line = _line.strip()
         if _line and not _line.startswith("#") and "=" in _line:
             _k, _v = _line.split("=", 1)
-            os.environ[_k.strip()] = _v.strip()
+            os.environ[_k.strip().lstrip("\ufeff")] = _v.strip()
 
 from parser.cpt_parser import parse_cpt, summarize_to_dict
 from agent.llm_analyzer import analyze_report, get_client, _get_model, _slim_for_llm

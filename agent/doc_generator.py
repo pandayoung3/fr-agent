@@ -7,11 +7,13 @@ v4 新增区块：
 - 指标字典（LLM 推断，含指标名/类型/单位/公式/业务含义）
 """
 from datetime import datetime
+import os
 from agent.lineage_builder import build_lineage
 
 
 def generate_handover_doc(parsed: dict, analysis: dict, author: str = "") -> str:
     now = datetime.now().strftime("%Y-%m-%d %H:%M")
+    model = os.environ.get("LLM_MODEL", "deepseek-ai/DeepSeek-V4-Flash")
     fname = parsed.get("file_name", "未知文件")
     report_type_zh = "填报报表" if parsed.get("report_type") == "writeback" else "查询报表"
 
@@ -372,7 +374,7 @@ def generate_handover_doc(parsed: dict, analysis: dict, author: str = "") -> str
         "",
         "---",
         "",
-        f"*本文档由 FR 交接 Agent 自动生成 v4 | 模型：DeepSeek-V4-Flash | {now}*",
+        f"*本文档由 FR 交接 Agent 自动生成 v4 | 模型：{model} | {now}*",
     ]
 
     return "\n".join(lines)

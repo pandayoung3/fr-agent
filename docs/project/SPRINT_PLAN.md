@@ -46,10 +46,19 @@
 - [x] 建立 100 分评分标准和样例评分记录模板。
 - [x] 与用户讨论并定稿 100 分评分标准权重。
 - [x] 根据评分标准对 `MS填报-脱敏-llp.cpt` 做 Parser 静态初评。
-- [ ] 根据评分标准对 `MS填报-脱敏-llp.cpt` 做 LLM + 前端全链路评分。
-- [ ] 准备真实 MySQL + FineReport DBTableData 样例，验证客户场景可用性。
+- [x] 根据评分标准完成 P0 Closure 全链路评分：`习题 8.cpt`，`86 / 100`，B 级。
+- [ ] P1：准备真实 MySQL + FineReport DBTableData 样例，验证客户场景可用性。用户确认该项不阻塞 P0。
 
-## 开放问题
+## P0 收口结论
 
-- TODO(CONFIRM): Streamlit 是直接删除还是先 deprecated。
-- TODO(CONFIRM): 是否允许脱敏样例 CPT 入仓。
+- P0 收口基线：React + FastAPI 本地工具主线可启动、可验证、可交接。
+- 最新评分记录：`docs/project/SCORING_REVIEW_P0_CLOSURE.md`。
+- P0 分数：`86 / 100`，B 级。
+- P0 不实现自动评分系统。
+- 真实 MySQL + FineReport DBTableData CPT 全链路验证进入 P1。
+- P1 起默认启用 subagent 协作。
+
+## P0 已决策事项
+
+- Streamlit：P0 仅保留 deprecated / 历史 MVP 定位，不直接删除；删除或迁移进入 P1 清理。
+- 脱敏样例 CPT：暂不入仓，避免数据脱敏和授权风险；P0 通过本地样例与评分记录保留验收证据。

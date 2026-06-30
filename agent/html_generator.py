@@ -7,6 +7,7 @@ HTML 交接文档生成器
 """
 from datetime import datetime
 import html as _html
+import os
 from agent.lineage_builder import build_lineage
 
 
@@ -723,6 +724,7 @@ def _build_toc(has_writeback: bool, has_risks: bool) -> str:
 def generate_handover_html(parsed: dict, analysis: dict, author: str = "") -> str:
     """生成自包含的高质量 HTML 交接文档"""
     now = datetime.now().strftime("%Y-%m-%d %H:%M")
+    model = os.environ.get("LLM_MODEL", "deepseek-ai/DeepSeek-V4-Flash")
     fname = parsed.get("file_name", "未知文件")
     fr_ver = parsed.get("fr_version", "?")
     rtype = "填报报表" if parsed.get("report_type") == "writeback" else "查询报表"
@@ -781,7 +783,7 @@ def generate_handover_html(parsed: dict, analysis: dict, author: str = "") -> st
     {ai_warn}
     {sections}
     <div class="doc-footer">
-      FR 交接 Agent 自动生成 v4 &nbsp;|&nbsp; 模型：DeepSeek-V4-Flash &nbsp;|&nbsp; {_e(now)}
+      FR 交接 Agent 自动生成 v4 &nbsp;|&nbsp; 模型：{_e(model)} &nbsp;|&nbsp; {_e(now)}
     </div>
   </main>
 </div>

@@ -134,3 +134,15 @@
 - Bugfix/Review Subagent：审查缺陷修复和 Review 机制。
 
 主 Agent 负责整合这些建议并落入 SOP。
+
+## P0 收口后的启用规则
+
+P0 收口阶段只轻量启用 Review/Test 类 subagent，用于检查文档闭环、评分记录和验收风险，不再开启并行功能开发。
+
+从 P1 起，subagent 协作进入默认工作方式：
+
+- 真实 MySQL + FineReport DBTableData CPT 验证：启用 DB Subagent、Test Subagent、Review Subagent。
+- 跨 Parser / API / UI / DB / LLM / Export 任意两个以上模块的任务：必须拆分 ownership 并启用对应 subagent。
+- Bug 修复：Bugfix Subagent 做最小修复，Test Subagent 跑回归，Review Subagent 检查范围。
+- 自动评分 MVP：Product / Test / LLM / API 或 UI Subagent 按模块拆分。
+- 文档长期维护：Context Steward 负责同步 Handoff、Backlog、评分记录和 API contract。
