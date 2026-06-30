@@ -130,6 +130,7 @@ export interface LineageResult {
   mermaid_raw: string
   dot: string
   sql_driving_widget_names: string[]
+  option_driving_widget_names?: string[]
   unmatched_widget_names: string[]
 }
 

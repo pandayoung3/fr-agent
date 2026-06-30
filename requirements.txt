@@ -1,6 +1,12 @@
-streamlit==1.50.0
+fastapi>=0.115,<1.0
+uvicorn[standard]>=0.30,<1.0
+python-multipart>=0.0.9,<1.0
+pydantic>=2,<3
 openai==2.37.0
 httpx==0.28.1
 PyMySQL==1.2.0
 pandas==2.3.3
 pillow==11.3.0
+
+# Historical MVP UI. Kept until Streamlit deprecation is completed.
+streamlit==1.50.0

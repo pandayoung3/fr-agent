@@ -1,6 +1,6 @@
 """
 数据血缘流向图构建器
-从 summarize_to_dict() 的解析结果确定性地构建"控件 → 参数 → 数据集 → 展示字段"的血缘图
+从 summarize_to_dict() 的解析结果确定性地构建"控件 → 参数/选项数据集 → 数据集 → 展示字段"的血缘图
 
 不调用 LLM，纯算法推导关系：
   1. widget.name ∈ dataset.sql_params  → 控件通过参数驱动 SQL 数据集
@@ -80,27 +80,29 @@ def build_lineage(parsed: dict) -> dict:
         if w.get("bound_dataset"):
             ctrl_ds_to_widgets.setdefault(w["bound_dataset"], []).append(w)
 
-    # SQL数据集名 → [cell_binding]
-    sql_ds_to_cells: dict = {}
+    # 数据集名 → [cell_binding]
+    ds_to_cells: dict = {}
     for c in cell_bindings:
         ds_name = c.get("dataset", "")
-        if ds_name in sql_ds_set:
-            sql_ds_to_cells.setdefault(ds_name, []).append(c)
+        ds_to_cells.setdefault(ds_name, []).append(c)
 
     # 分类控件
     sql_driving = [w for w in widgets if w["name"] in param_to_sql_ds]
-    unmatched = [w for w in widgets if w["name"] not in param_to_sql_ds]
+    option_driving = [w for w in widgets if w.get("bound_dataset")]
+    matched_widget_names = {w["name"] for w in sql_driving + option_driving}
+    unmatched = [w for w in widgets if w["name"] not in matched_widget_names]
 
     # 控件数据集（为控件提供选项，自身不直接展示数据）
-    ctrl_ds_names = set(ctrl_ds_to_widgets.keys()) - sql_ds_set
+    display_ds_names = set(ds_to_cells.keys())
+    ctrl_ds_names = set(ctrl_ds_to_widgets.keys()) - display_ds_names
 
     mermaid_raw = _build_mermaid(
         widgets, datasets, sql_ds_set,
-        param_to_sql_ds, ctrl_ds_to_widgets, sql_ds_to_cells, ctrl_ds_names,
+        param_to_sql_ds, ctrl_ds_to_widgets, ds_to_cells, ctrl_ds_names,
     )
     dot = _build_dot(
         widgets, datasets, sql_ds_set,
-        param_to_sql_ds, ctrl_ds_to_widgets, sql_ds_to_cells, ctrl_ds_names,
+        param_to_sql_ds, ctrl_ds_to_widgets, ds_to_cells, ctrl_ds_names,
     )
 
     return {
@@ -108,6 +110,7 @@ def build_lineage(parsed: dict) -> dict:
         "mermaid_raw": mermaid_raw,
         "dot": dot,
         "sql_driving_widget_names": [w["name"] for w in sql_driving],
+        "option_driving_widget_names": [w["name"] for w in option_driving],
         "unmatched_widget_names": [w["name"] for w in unmatched],
     }
 
@@ -115,7 +118,7 @@ def build_lineage(parsed: dict) -> dict:
 # ── Mermaid 生成 ──────────────────────────────────────────────────────────────
 
 def _build_mermaid(widgets, datasets, sql_ds_set,
-                   param_to_sql_ds, ctrl_ds_to_widgets, sql_ds_to_cells,
+                   param_to_sql_ds, ctrl_ds_to_widgets, ds_to_cells,
                    ctrl_ds_names) -> str:
     lines = [
         "flowchart LR",
@@ -142,9 +145,9 @@ def _build_mermaid(widgets, datasets, sql_ds_set,
 
     lines.append("")
 
-    # 3. SQL 数据集节点（绿）
+    # 3. 数据集节点（绿）
     for ds in datasets:
-        if ds["name"] not in sql_ds_set:
+        if ds["name"] not in sql_ds_set and ds["name"] not in ds_to_cells:
             continue
         nid = _node_id("DS", ds["name"])
         label = _mermaid_label(_trunc(ds["name"], 24))
@@ -153,7 +156,7 @@ def _build_mermaid(widgets, datasets, sql_ds_set,
     lines.append("")
 
     # 4. 展示字段节点（橙，按数据集分组）
-    for ds_name, cells in sql_ds_to_cells.items():
+    for ds_name, cells in ds_to_cells.items():
         nid = _node_id("CELLS", ds_name)
         fields = [_mermaid_label(c["column"]) for c in cells[:6] if c.get("column")]
         if len(cells) > 6:
@@ -165,9 +168,7 @@ def _build_mermaid(widgets, datasets, sql_ds_set,
 
     # 5. 边：控件数据集 → 参数控件
     for ds_name, ws in ctrl_ds_to_widgets.items():
-        if ds_name not in ctrl_ds_names:
-            continue
-        src = _node_id("CDS", ds_name)
+        src = _node_id("CDS" if ds_name in ctrl_ds_names else "DS", ds_name)
         for w in ws:
             dst = _node_id("W", w["name"])
             lines.append(f'    {src} -->|"选项"| {dst}')
@@ -182,7 +183,7 @@ def _build_mermaid(widgets, datasets, sql_ds_set,
                 lines.append(f'    {src} -->|"${param}"| {dst}')
 
     # 7. 边：SQL 数据集 → 展示字段
-    for ds_name in sql_ds_to_cells:
+    for ds_name in ds_to_cells:
         src = _node_id("DS", ds_name)
         dst = _node_id("CELLS", ds_name)
         lines.append(f"    {src} --> {dst}")
@@ -193,7 +194,7 @@ def _build_mermaid(widgets, datasets, sql_ds_set,
 # ── Graphviz DOT 生成 ─────────────────────────────────────────────────────────
 
 def _build_dot(widgets, datasets, sql_ds_set,
-               param_to_sql_ds, ctrl_ds_to_widgets, sql_ds_to_cells,
+               param_to_sql_ds, ctrl_ds_to_widgets, ds_to_cells,
                ctrl_ds_names) -> str:
     lines = [
         'digraph lineage {',
@@ -237,14 +238,14 @@ def _build_dot(widgets, datasets, sql_ds_set,
         lines.append('    }')
         lines.append('')
 
-    # ── SQL 数据集 cluster ────────────────────────────────────────────────────
-    sql_ds_list = [ds for ds in datasets if ds["name"] in sql_ds_set]
-    if sql_ds_list:
+    # ── 数据集 cluster ────────────────────────────────────────────────────────
+    data_ds_list = [ds for ds in datasets if ds["name"] in sql_ds_set or ds["name"] in ds_to_cells]
+    if data_ds_list:
         lines += [
             '    subgraph cluster_sql_ds {',
-            '        label="SQL 数据集"; style=filled; fillcolor="#E8F5E9"; color="#388E3C";',
+            '        label="数据集"; style=filled; fillcolor="#E8F5E9"; color="#388E3C";',
         ]
-        for ds in sql_ds_list:
+        for ds in data_ds_list:
             nid = _node_id("DS", ds["name"])
             label = _dot_label(_trunc(ds["name"], 24))
             lines.append(
@@ -255,12 +256,12 @@ def _build_dot(widgets, datasets, sql_ds_set,
         lines.append('')
 
     # ── 展示字段 cluster ──────────────────────────────────────────────────────
-    if sql_ds_to_cells:
+    if ds_to_cells:
         lines += [
             '    subgraph cluster_cells {',
             '        label="展示字段"; style=filled; fillcolor="#FFF3E0"; color="#F57C00";',
         ]
-        for ds_name, cells in sql_ds_to_cells.items():
+        for ds_name, cells in ds_to_cells.items():
             nid = _node_id("CELLS", ds_name)
             fields = [_dot_label(c["column"]) for c in cells[:6] if c.get("column")]
             if len(cells) > 6:
@@ -276,9 +277,7 @@ def _build_dot(widgets, datasets, sql_ds_set,
     # ── 边 ────────────────────────────────────────────────────────────────────
     # 控件数据集 → 参数控件
     for ds_name, ws in ctrl_ds_to_widgets.items():
-        if ds_name not in ctrl_ds_names:
-            continue
-        src = _node_id("CDS", ds_name)
+        src = _node_id("CDS" if ds_name in ctrl_ds_names else "DS", ds_name)
         for w in ws:
             dst = _node_id("W", w["name"])
             lines.append(f'    {src} -> {dst} [label="选项", color="#78909C", style=dashed];')
@@ -293,7 +292,7 @@ def _build_dot(widgets, datasets, sql_ds_set,
                 lines.append(f'    {src} -> {dst} [label="{label}", color="#1565C0", fontcolor="#1565C0"];')
 
     # SQL 数据集 → 展示字段
-    for ds_name in sql_ds_to_cells:
+    for ds_name in ds_to_cells:
         src = _node_id("DS", ds_name)
         dst = _node_id("CELLS", ds_name)
         lines.append(f'    {src} -> {dst} [color="#2E7D32"];')

@@ -146,9 +146,9 @@ def parse_cpt(file_path: str) -> ReportSummary:
     summary.cell_bindings = _parse_cells(root, style_map)
     summary.label_data_pairs = _extract_label_data_pairs(summary.cell_bindings)
     summary.dataset_shared_keys = _find_shared_keys(summary.datasets)
-    summary.highlight_rules_summary = _deduplicate_highlight_rules(summary.cell_bindings)
-    summary.report_type = _detect_report_type(root)
     summary.writeback_config = _parse_writeback_config(root)
+    summary.highlight_rules_summary = _deduplicate_highlight_rules(summary.cell_bindings)
+    summary.report_type = _detect_report_type(root, summary.writeback_config)
 
     return summary
 
@@ -517,7 +517,13 @@ def _deduplicate_highlight_rules(cells: List[CellBinding]) -> List[Dict]:
 
 # ── 报表类型识别 ───────────────────────────────────────────────────────────────
 
-def _detect_report_type(root: ET.Element) -> str:
+def _detect_report_type(root: ET.Element, writeback_config: Optional[WritebackConfig] = None) -> str:
+    if writeback_config is not None:
+        return "writeback"
+
+    if root.find(".//ReportWriteAttr") is not None:
+        return "writeback"
+
     for elem in root.iter("Widget"):
         cls = elem.attrib.get("class", "")
         if "AppendRowButton" in cls or "DeleteRowButton" in cls:

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import mermaid from 'mermaid'
 import type { ParsedReport, LineageResult } from '../../types'
 
@@ -16,13 +16,9 @@ export default function LineageTab({ parsed, lineage, onLoadLineage }: Props) {
   const [svgHtml, setSvgHtml] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
+  const requestedRef = useRef(false)
 
-  useEffect(() => {
-    if (!lineage) { onLoadLineage(); return }
-    renderMermaid(lineage.mermaid_raw || lineage.mermaid)
-  }, [lineage])
-
-  async function renderMermaid(raw: string) {
+  const renderMermaid = useCallback(async (raw: string) => {
     // Strip markdown code fences if present
     let code = raw.trim()
     if (code.startsWith('```mermaid')) code = code.slice(10)
@@ -42,7 +38,24 @@ export default function LineageTab({ parsed, lineage, onLoadLineage }: Props) {
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
+
+  useEffect(() => {
+    if (!lineage) {
+      if (!requestedRef.current) {
+        requestedRef.current = true
+        onLoadLineage()
+      }
+      return
+    }
+
+    requestedRef.current = false
+    const renderTimer = window.setTimeout(() => {
+      void renderMermaid(lineage.mermaid_raw || lineage.mermaid)
+    }, 0)
+
+    return () => window.clearTimeout(renderTimer)
+  }, [lineage, onLoadLineage, renderMermaid])
 
   const datasets = parsed.datasets
 
