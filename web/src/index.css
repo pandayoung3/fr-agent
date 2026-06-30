@@ -1,0 +1,104 @@
+@import "tailwindcss";
+
+/* Geist Sans — UI & numbers */
+@font-face {
+  font-family: "Geist";
+  src: url("/node_modules/geist/dist/fonts/geist-sans/Geist-Regular.woff2") format("woff2");
+  font-weight: 400; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "Geist";
+  src: url("/node_modules/geist/dist/fonts/geist-sans/Geist-Medium.woff2") format("woff2");
+  font-weight: 500; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "Geist";
+  src: url("/node_modules/geist/dist/fonts/geist-sans/Geist-SemiBold.woff2") format("woff2");
+  font-weight: 600; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "Geist";
+  src: url("/node_modules/geist/dist/fonts/geist-sans/Geist-Bold.woff2") format("woff2");
+  font-weight: 700; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "Geist Mono";
+  src: url("/node_modules/geist/dist/fonts/geist-mono/GeistMono-Regular.woff2") format("woff2");
+  font-weight: 400; font-style: normal; font-display: swap;
+}
+
+@layer base {
+  :root {
+    --accent: #2563eb;
+    --accent-dim: #1d4ed8;
+    --accent-surface: #eff6ff;
+    --accent-border: #bfdbfe;
+    --success: #059669;
+    --success-surface: #ecfdf5;
+    --success-border: #a7f3d0;
+    --bg: #f7f8fc;
+    --surface: #ffffff;
+    --border: #e5e8f0;
+    --border-strong: #d0d5e0;
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --text-muted: #94a3b8;
+    --radius-sm: 6px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-xl: 16px;
+    --shadow-sm: 0 1px 2px 0 rgba(15, 23, 42, 0.04), 0 1px 3px 0 rgba(15, 23, 42, 0.06);
+    --shadow-md: 0 2px 8px 0 rgba(15, 23, 42, 0.06), 0 1px 3px 0 rgba(15, 23, 42, 0.04);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    font-family: "Geist", "PingFang SC", "Noto Sans SC", "Microsoft YaHei", -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text-primary);
+    margin: 0;
+    -webkit-font-smoothing: antialiased;
+    font-feature-settings: "cv02", "cv03", "cv04";
+  }
+
+  code, pre, .font-mono {
+    font-family: "Geist Mono", "SFMono-Regular", Consolas, monospace;
+  }
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
+
+/* Mermaid */
+.mermaid-container svg { max-width: 100%; height: auto; }
+
+/* Streaming cursor */
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+.stream-cursor::after {
+  content: '▋';
+  animation: blink 1s infinite;
+  color: var(--accent);
+  font-size: 0.85em;
+  margin-left: 1px;
+}
+
+/* Fade in */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.fade-in-up { animation: fadeInUp 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
+/* Spin */
+@keyframes spin { to { transform: rotate(360deg); } }
+.spin { animation: spin 0.8s linear infinite; }
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .fade-in-up, .spin { animation: none; }
+  .stream-cursor::after { animation: none; }
+}
