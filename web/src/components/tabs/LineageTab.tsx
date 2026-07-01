@@ -10,7 +10,7 @@ interface Props {
 
 mermaid.initialize({ startOnLoad: false, theme: 'default', flowchart: { curve: 'basis' } })
 
-let _mermaidCounter = 0
+let mermaidCounter = 0
 
 export default function LineageTab({ parsed, lineage, onLoadLineage }: Props) {
   const [svgHtml, setSvgHtml] = useState<string | null>(null)
@@ -19,7 +19,6 @@ export default function LineageTab({ parsed, lineage, onLoadLineage }: Props) {
   const requestedRef = useRef(false)
 
   const renderMermaid = useCallback(async (raw: string) => {
-    // Strip markdown code fences if present
     let code = raw.trim()
     if (code.startsWith('```mermaid')) code = code.slice(10)
     if (code.startsWith('```')) code = code.slice(3)
@@ -29,7 +28,7 @@ export default function LineageTab({ parsed, lineage, onLoadLineage }: Props) {
 
     setLoading(true)
     try {
-      const id = `mermaid-${++_mermaidCounter}`
+      const id = `mermaid-${++mermaidCounter}`
       const { svg } = await mermaid.render(id, code)
       setSvgHtml(svg)
     } catch (e) {
@@ -57,78 +56,68 @@ export default function LineageTab({ parsed, lineage, onLoadLineage }: Props) {
     return () => window.clearTimeout(renderTimer)
   }, [lineage, onLoadLineage, renderMermaid])
 
-  const datasets = parsed.datasets
-
   return (
     <div className="space-y-5">
-      {/* 血缘图 */}
-      <div>
-        <div className="text-xs text-slate-400 mb-3">
-          🔵 参数控件 &nbsp;|&nbsp; 🟢 SQL 数据集 &nbsp;|&nbsp; 🟠 展示字段 &nbsp;|&nbsp; ⚪ 控件选项数据集
-        </div>
-
-        {loading && (
-          <div className="flex items-center gap-2 text-sm text-slate-400 py-8 justify-center">
-            <div className="w-4 h-4 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
-            加载血缘图...
-          </div>
-        )}
-
-        {!loading && lineage && lineage.sql_driving_widget_names.length === 0 && (
-          <div className="text-sm text-slate-400 bg-slate-50 rounded-xl p-4">
-            未找到控件→SQL参数的直接连接（所有数据集为嵌入式或参数名不匹配）
-          </div>
-        )}
-
-        {!loading && svgHtml && (
-          <div
-            ref={containerRef}
-            className="mermaid-container bg-slate-50 border border-slate-100 rounded-xl p-4 overflow-x-auto"
-            dangerouslySetInnerHTML={{ __html: svgHtml }}
-          />
-        )}
-
-        {lineage && (lineage.unmatched_widget_names ?? []).length > 0 && (
-          <div className="text-xs text-amber-700 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2 mt-2">
-            ⚠️ 未找到 SQL 参数连接的控件（{lineage.unmatched_widget_names.length} 个）：
-            {lineage.unmatched_widget_names.slice(0, 8).join('、')}
-            {lineage.unmatched_widget_names.length > 8 ? '...' : ''}
-            <br />这些控件可能通过单元格过滤条件或前端 JS 实现筛选，需人工核实。
-          </div>
-        )}
+      <div className="flex flex-wrap gap-2 text-[11px]">
+        <Legend color="#2563eb" label="参数控件" />
+        <Legend color="#059669" label="SQL / 数据集" />
+        <Legend color="#d97706" label="展示字段" />
+        <Legend color="#7c3aed" label="控件选项数据集" />
       </div>
 
-      {/* 数据集详情 */}
-      {datasets.length > 0 && (
+      {loading && (
+        <div className="flex items-center justify-center gap-2 py-8 text-[13px]" style={{ color: 'var(--text-muted)' }}>
+          <div className="h-4 w-4 animate-spin rounded-full border-2 border-blue-400 border-t-transparent" />
+          正在加载数据血缘图...
+        </div>
+      )}
+
+      {!loading && lineage && lineage.sql_driving_widget_names.length === 0 && (
+        <div className="rounded-lg p-4 text-[13px]" style={{ background: 'var(--bg)', border: '1px solid var(--border)', color: 'var(--text-muted)' }}>
+          未找到控件到 SQL 参数的直接连接。可能是内置数据集、参数名不匹配，或通过单元格过滤 / JS / 其他配置实现。
+        </div>
+      )}
+
+      {!loading && svgHtml && (
+        <div
+          ref={containerRef}
+          className="mermaid-container overflow-x-auto rounded-lg p-4"
+          style={{ background: 'var(--bg)', border: '1px solid var(--border)' }}
+          dangerouslySetInnerHTML={{ __html: svgHtml }}
+        />
+      )}
+
+      {lineage && (lineage.unmatched_widget_names ?? []).length > 0 && (
+        <div className="rounded-lg px-3 py-2 text-[12px] leading-5" style={{ background: '#fffbeb', border: '1px solid #fde68a', color: '#92400e' }}>
+          未找到 SQL 参数连接的控件（{lineage.unmatched_widget_names.length} 个）：
+          {lineage.unmatched_widget_names.slice(0, 8).join('、')}
+          {lineage.unmatched_widget_names.length > 8 ? '...' : ''}
+          <br />
+          这些控件可能通过单元格过滤条件或前端 JS 实现筛选，需要人工复核。
+        </div>
+      )}
+
+      {parsed.datasets.length > 0 && (
         <details>
-          <summary className="cursor-pointer text-sm font-semibold text-slate-500 hover:text-blue-600 list-none flex items-center gap-1.5 py-1">
-            <span className="text-xs">▶</span> 数据集详情（{datasets.length} 个）
+          <summary className="flex cursor-pointer list-none items-center gap-1.5 py-1 text-[13px] font-semibold" style={{ color: 'var(--text-secondary)' }}>
+            数据集详情（{parsed.datasets.length} 个）
           </summary>
           <div className="mt-3 space-y-3">
-            {datasets.map((ds, i) => (
-              <div key={i} className="bg-white border border-slate-100 rounded-xl p-3">
-                <div className="text-sm font-semibold text-slate-700 mb-1.5">
-                  {ds.type === 'DBTableData' ? '🗄️ DB查询' : '📋 内嵌数据'} · {ds.name}
+            {parsed.datasets.map((dataset, index) => (
+              <div key={`${dataset.name}-${index}`} className="rounded-lg p-3" style={{ background: '#fff', border: '1px solid var(--border)' }}>
+                <div className="mb-1.5 text-[13px] font-semibold" style={{ color: 'var(--text-primary)' }}>
+                  {dataset.type === 'DBTableData' ? 'DB 查询' : '内置/非 DB 数据'} · {dataset.name}
                 </div>
-                {ds.db_connection && (
-                  <div className="text-xs text-slate-400 mb-1">连接：<code className="bg-slate-100 px-1 rounded">{ds.db_connection}</code></div>
+                {dataset.db_connection && (
+                  <div className="mb-1 text-[12px]" style={{ color: 'var(--text-muted)' }}>连接：<code className="rounded bg-slate-100 px-1">{dataset.db_connection}</code></div>
                 )}
-                {(ds.columns ?? []).length > 0 && (
-                  <div className="text-xs text-slate-400 flex flex-wrap gap-1 mt-1">
-                    {ds.columns!.slice(0, 20).map(c => (
-                      <code key={c} className="bg-slate-100 px-1.5 py-0.5 rounded text-slate-600">{c}</code>
+                {(dataset.columns ?? []).length > 0 && (
+                  <div className="mt-1 flex flex-wrap gap-1 text-[11px]">
+                    {dataset.columns!.slice(0, 20).map(column => (
+                      <code key={column} className="rounded bg-slate-100 px-1.5 py-0.5 text-slate-600">{column}</code>
                     ))}
-                    {ds.columns!.length > 20 && <span className="text-slate-300 italic">+{ds.columns!.length - 20} 列</span>}
+                    {dataset.columns!.length > 20 && <span className="italic text-slate-400">+{dataset.columns!.length - 20} 列</span>}
                   </div>
-                )}
-                {ds.sql && (
-                  <details className="mt-2">
-                    <summary className="cursor-pointer text-xs text-slate-400 hover:text-blue-500 list-none">▶ SQL</summary>
-                    <pre className="mt-1 text-xs bg-slate-800 text-slate-100 rounded-lg p-3 overflow-x-auto">{ds.sql}</pre>
-                    {(ds.sql_params ?? []).length > 0 && (
-                      <div className="text-xs text-slate-400 mt-1">动态参数：{ds.sql_params!.join(', ')}</div>
-                    )}
-                  </details>
                 )}
               </div>
             ))}
@@ -136,5 +125,14 @@ export default function LineageTab({ parsed, lineage, onLoadLineage }: Props) {
         </details>
       )}
     </div>
+  )
+}
+
+function Legend({ color, label }: { color: string; label: string }) {
+  return (
+    <span className="inline-flex items-center gap-1.5 rounded-md px-2 py-1" style={{ background: 'var(--bg)', border: '1px solid var(--border)', color: 'var(--text-secondary)' }}>
+      <span className="h-2 w-2 rounded-full" style={{ background: color }} />
+      {label}
+    </span>
   )
 }

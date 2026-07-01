@@ -35,6 +35,9 @@ from agent.db_connector import parse_fr_connections, enrich_parsed_datasets
 from agent.doc_generator import generate_handover_doc
 from agent.html_generator import generate_handover_html
 from agent.lineage_builder import build_lineage
+from agent.scoring_engine import score_report
+from agent.formula_validator import validate_formulas
+from agent.change_impact_analyzer import analyze_change_impact
 
 # ── App ──────────────────────────────────────────────────────────────────────
 app = FastAPI(title="FR 交接 Agent API", version="2.0")
@@ -69,6 +72,23 @@ class ExportRequest(BaseModel):
 
 class FrConnectionsRequest(BaseModel):
     fr_webinf_dir: str
+
+class ScoreRequest(BaseModel):
+    parsed: dict
+    analysis: dict = {}
+    lineage: dict | None = None
+
+class FormulaValidationRequest(BaseModel):
+    parsed: dict
+
+class ChangeImpactRequest(BaseModel):
+    parsed: dict
+    analysis: dict | None = None
+    change_request: str
+    lineage: dict | None = None
+
+class LlmTestRequest(BaseModel):
+    prompt: str = "请用一句话回复 FR-Agent LLM 配置已可用。"
 
 
 # ── SSE 工具 ─────────────────────────────────────────────────────────────────
@@ -215,6 +235,69 @@ async def export_html(req: ExportRequest):
 async def lineage_endpoint(req: AnalyzeRequest):
     result = await asyncio.to_thread(build_lineage, req.parsed)
     return result
+
+
+@app.post("/api/score")
+async def score_endpoint(req: ScoreRequest):
+    return await asyncio.to_thread(score_report, req.parsed, req.analysis, req.lineage)
+
+
+@app.post("/api/validate/formulas")
+async def validate_formulas_endpoint(req: FormulaValidationRequest):
+    return await asyncio.to_thread(validate_formulas, req.parsed)
+
+
+@app.post("/api/change-impact")
+async def change_impact_endpoint(req: ChangeImpactRequest):
+    if not req.change_request.strip():
+        raise HTTPException(400, "变更描述不能为空")
+    return await asyncio.to_thread(
+        analyze_change_impact,
+        req.parsed,
+        req.analysis,
+        req.change_request,
+        req.lineage,
+    )
+
+
+@app.get("/api/llm/config")
+async def llm_config_endpoint():
+    api_key = os.environ.get("SILICONFLOW_API_KEY", "")
+    base_url = os.environ.get("SILICONFLOW_BASE_URL", "https://api.siliconflow.cn/v1")
+    model = _get_model()
+    return {
+        "configured": bool(api_key.strip()),
+        "provider": "siliconflow",
+        "base_url": base_url,
+        "model": model,
+        "api_key_hint": f"***{api_key[-4:]}" if api_key else "",
+    }
+
+
+@app.post("/api/llm/test")
+async def llm_test_endpoint(req: LlmTestRequest):
+    if not os.environ.get("SILICONFLOW_API_KEY", "").strip():
+        raise HTTPException(400, "SILICONFLOW_API_KEY 未配置")
+
+    def _test_call() -> dict:
+        client = get_client()
+        model = _get_model()
+        completion = client.chat.completions.create(
+            model=model,
+            messages=[
+                {"role": "system", "content": "你是一个用于验证 API 配置的助手。"},
+                {"role": "user", "content": req.prompt},
+            ],
+            max_tokens=64,
+            temperature=0,
+        )
+        text = completion.choices[0].message.content or ""
+        return {"ok": True, "model": model, "message": text.strip()}
+
+    try:
+        return await asyncio.to_thread(_test_call)
+    except Exception as e:
+        raise HTTPException(502, f"LLM 测试失败：{e}")
 
 
 # ── 生产模式：serve React build ───────────────────────────────────────────────

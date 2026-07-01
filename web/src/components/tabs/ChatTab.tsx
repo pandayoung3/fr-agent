@@ -1,5 +1,5 @@
-import { useState, useRef, useEffect } from 'react'
-import type { ParsedReport, AnalysisResult, ChatMessage } from '../../types'
+import { useEffect, useRef, useState } from 'react'
+import type { AnalysisResult, ChatMessage, ParsedReport } from '../../types'
 import { streamChat } from '../../api'
 
 interface Props {
@@ -7,10 +7,11 @@ interface Props {
   analysis: AnalysisResult
   history: ChatMessage[]
   onHistoryChange: (h: ChatMessage[]) => void
+  initialQuestion?: string
 }
 
-export default function ChatTab({ parsed, analysis, history, onHistoryChange }: Props) {
-  const [input, setInput] = useState('')
+export default function ChatTab({ parsed, analysis, history, onHistoryChange, initialQuestion }: Props) {
+  const [input, setInput] = useState(() => initialQuestion ?? '')
   const [streaming, setStreaming] = useState(false)
   const [currentAnswer, setCurrentAnswer] = useState('')
   const bottomRef = useRef<HTMLDivElement>(null)
@@ -36,14 +37,14 @@ export default function ChatTab({ parsed, analysis, history, onHistoryChange }: 
           answer += event.text as string
           setCurrentAnswer(answer)
         } else if (event.type === 'done' || event.type === 'error') {
-          const finalAnswer = event.type === 'error' ? `❌ ${event.message}` : answer
+          const finalAnswer = event.type === 'error' ? `错误：${event.message}` : answer
           onHistoryChange([...history, userMsg, { role: 'assistant', content: finalAnswer }])
           setCurrentAnswer('')
           setStreaming(false)
         }
       })
     } catch (e) {
-      onHistoryChange([...history, userMsg, { role: 'assistant', content: `❌ ${String(e)}` }])
+      onHistoryChange([...history, userMsg, { role: 'assistant', content: `错误：${String(e)}` }])
       setCurrentAnswer('')
       setStreaming(false)
     }
@@ -51,13 +52,15 @@ export default function ChatTab({ parsed, analysis, history, onHistoryChange }: 
 
   return (
     <div className="flex flex-col h-[520px]">
-      <p className="text-xs text-slate-400 mb-3">基于报表结构和 AI 分析结论，回答关于这张报表的具体问题。</p>
+      <div className="mb-3 rounded-lg px-3 py-2" style={{ background: 'var(--bg)', border: '1px solid var(--border)' }}>
+        <p className="text-xs leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
+          基于报表结构和 AI 分析结论回答当前 CPT 的具体问题。也可以从工作台节点进入，系统会自动带入控件、数据集、字段或风险上下文。
+        </p>
+      </div>
 
-      {/* 消息列表 */}
       <div className="flex-1 overflow-y-auto space-y-3 mb-3 pr-1">
         {history.length === 0 && !streaming && (
           <div className="text-center py-10">
-            <div className="text-3xl mb-2">💬</div>
             <div className="text-sm text-slate-400">
               你可以问：这张报表有哪些参数控件？某个字段代表什么业务含义？
             </div>
@@ -65,23 +68,24 @@ export default function ChatTab({ parsed, analysis, history, onHistoryChange }: 
         )}
 
         {history.map((msg, i) => (
-          <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+          <div key={`${msg.role}-${i}`} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
             <div className={`max-w-[80%] px-3.5 py-2.5 rounded-2xl text-sm leading-relaxed
               ${msg.role === 'user'
                 ? 'bg-blue-600 text-white rounded-br-sm'
                 : 'bg-white border border-slate-100 text-slate-700 rounded-bl-sm shadow-sm'
-              }`}>
+              }`}
+            >
               {msg.content}
             </div>
           </div>
         ))}
 
-        {/* 流式输出中 */}
         {streaming && (
           <div className="flex justify-start">
             <div className={`max-w-[80%] px-3.5 py-2.5 rounded-2xl rounded-bl-sm text-sm leading-relaxed
               bg-white border border-slate-100 text-slate-700 shadow-sm
-              ${currentAnswer ? '' : 'stream-cursor'}`}>
+              ${currentAnswer ? '' : 'stream-cursor'}`}
+            >
               {currentAnswer || <span className="text-slate-400">思考中</span>}
               {currentAnswer && <span className="stream-cursor" />}
             </div>
@@ -91,7 +95,6 @@ export default function ChatTab({ parsed, analysis, history, onHistoryChange }: 
         <div ref={bottomRef} />
       </div>
 
-      {/* 输入框 */}
       <div className="flex gap-2">
         <input
           type="text"

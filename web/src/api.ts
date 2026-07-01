@@ -1,4 +1,14 @@
-import type { ParsedReport, AnalysisResult, LineageResult, ChatMessage } from './types'
+import type {
+  ParsedReport,
+  AnalysisResult,
+  LineageResult,
+  ChatMessage,
+  ScoreResult,
+  FormulaValidationResult,
+  ChangeImpactResult,
+  LlmConfig,
+  LlmTestResult,
+} from './types'
 
 const BASE = '/api'
 
@@ -120,6 +130,37 @@ export async function exportHtml(parsed: ParsedReport, analysis: AnalysisResult)
 
 export async function getLineage(parsed: ParsedReport): Promise<LineageResult> {
   return post('/lineage', { parsed })
+}
+
+export async function scoreReport(
+  parsed: ParsedReport,
+  analysis: AnalysisResult,
+  lineage: LineageResult | null,
+): Promise<ScoreResult> {
+  return post('/score', { parsed, analysis, lineage })
+}
+
+export async function validateFormulas(parsed: ParsedReport): Promise<FormulaValidationResult> {
+  return post('/validate/formulas', { parsed })
+}
+
+export async function analyzeChangeImpact(
+  parsed: ParsedReport,
+  analysis: AnalysisResult,
+  changeRequest: string,
+  lineage: LineageResult | null,
+): Promise<ChangeImpactResult> {
+  return post('/change-impact', { parsed, analysis, change_request: changeRequest, lineage })
+}
+
+export async function getLlmConfig(): Promise<LlmConfig> {
+  const res = await fetch(`${BASE}/llm/config`)
+  if (!res.ok) throw new Error('LLM 配置读取失败')
+  return res.json()
+}
+
+export async function testLlmConfig(): Promise<LlmTestResult> {
+  return post('/llm/test', {})
 }
 
 // ── 工具 ──────────────────────────────────────────────────────────────────────

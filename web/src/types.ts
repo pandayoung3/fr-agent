@@ -160,3 +160,77 @@ export interface AppState {
   chatHistory: ChatMessage[]
   error: string | null
 }
+
+export interface ScoreDimension {
+  key: string
+  label: string
+  score: number
+  max_score: number
+  findings: string[]
+}
+
+export interface ScoreResult {
+  score: number
+  grade: string
+  dimensions: ScoreDimension[]
+  top_findings: string[]
+  recommendations: string[]
+}
+
+export interface FormulaValidationItem {
+  pos: string
+  formula: string
+  references: string[]
+  ranges: string[]
+  missing_references: string[]
+  risky_functions: string[]
+  status: 'ok' | 'review'
+  messages: string[]
+}
+
+export interface FormulaValidationResult {
+  total: number
+  issue_count: number
+  items: FormulaValidationItem[]
+}
+
+export interface ChangeImpactItem {
+  name: string
+  reason: string
+  detail?: string
+}
+
+export interface ChangeImpactAffected {
+  datasets: ChangeImpactItem[]
+  widgets: ChangeImpactItem[]
+  fields: ChangeImpactItem[]
+  cells: ChangeImpactItem[]
+  formulas: ChangeImpactItem[]
+  sql: ChangeImpactItem[]
+  writeback: ChangeImpactItem[]
+}
+
+export interface ChangeImpactResult {
+  change_request: string
+  change_types: string[]
+  summary: string
+  confidence: '高' | '中' | '低'
+  affected: ChangeImpactAffected
+  suggested_steps: string[]
+  evidence: string[]
+  review_points: string[]
+}
+
+export interface LlmConfig {
+  configured: boolean
+  provider: string
+  base_url: string
+  model: string
+  api_key_hint: string
+}
+
+export interface LlmTestResult {
+  ok: boolean
+  model: string
+  message: string
+}

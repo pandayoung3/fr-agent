@@ -1,12 +1,11 @@
 import { useState } from 'react'
 import type { ParsedReport, AnalysisResult, LineageResult, ChatMessage } from '../../types'
-import OverviewTab from './OverviewTab'
-import ChainsTab from './ChainsTab'
-import IndicatorsTab from './IndicatorsTab'
-import StepsTab from './StepsTab'
-import LineageTab from './LineageTab'
 import ChatTab from './ChatTab'
 import ExportTab from './ExportTab'
+import WorkbenchTab from './WorkbenchTab'
+import ChangeImpactTab from './ChangeImpactTab'
+import DeepAnalysisTab from './DeepAnalysisTab'
+import type { ExportHistoryItem } from '../../historyStore'
 
 interface Props {
   parsed: ParsedReport
@@ -15,84 +14,114 @@ interface Props {
   onLoadLineage: () => void
   chatHistory: ChatMessage[]
   onChatHistory: (h: ChatMessage[]) => void
+  onExportRecord: (item: Omit<ExportHistoryItem, 'id' | 'created_at'>) => void
 }
 
 const TABS = [
-  { id: 'overview',    label: '概览' },
-  { id: 'chains',      label: '交互链路' },
-  { id: 'indicators',  label: '指标字典' },
-  { id: 'steps',       label: '开发步骤' },
-  { id: 'lineage',     label: '数据血缘' },
-  { id: 'chat',        label: '问答' },
-  { id: 'export',      label: '导出' },
+  { id: 'workbench', label: '工作台' },
+  { id: 'change', label: '变更建议' },
+  { id: 'deep', label: '深度分析' },
+  { id: 'chat', label: '问答' },
+  { id: 'export', label: '导出' },
 ]
 
-export default function ResultTabs({ parsed, analysis, lineage, onLoadLineage, chatHistory, onChatHistory }: Props) {
-  const [active, setActive] = useState('overview')
+export default function ResultTabs({
+  parsed,
+  analysis,
+  lineage,
+  onLoadLineage,
+  chatHistory,
+  onChatHistory,
+  onExportRecord,
+}: Props) {
+  const [active, setActive] = useState('workbench')
+  const [chatPrompt, setChatPrompt] = useState('')
+
+  function askFromWorkbench(question: string) {
+    setChatPrompt(question)
+    setActive('chat')
+  }
 
   return (
-    <div
-      className="rounded-xl overflow-hidden"
-      style={{
-        background: 'var(--surface)',
-        border: '1px solid var(--border)',
-        boxShadow: 'var(--shadow-md)',
-      }}
+    <section
+      className="overflow-hidden rounded-lg"
+      style={{ background: 'var(--surface)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-md)' }}
+      aria-label="分析结果"
     >
-      {/* Tab bar */}
-      <div
-        className="flex overflow-x-auto"
-        style={{ borderBottom: '1px solid var(--border)' }}
-      >
-        {TABS.map(tab => {
-          const isActive = active === tab.id
-          return (
-            <button
-              key={tab.id}
-              onClick={() => setActive(tab.id)}
-              className="relative px-4 py-3 text-[12.5px] font-medium whitespace-nowrap transition-colors duration-150 flex-shrink-0"
-              style={{
-                color: isActive ? 'var(--accent)' : 'var(--text-muted)',
-                background: isActive ? 'var(--accent-surface)' : 'transparent',
-              }}
-              onMouseOver={e => {
-                if (!isActive) e.currentTarget.style.color = 'var(--text-secondary)'
-              }}
-              onMouseOut={e => {
-                if (!isActive) e.currentTarget.style.color = 'var(--text-muted)'
-              }}
-            >
-              {tab.label}
-              {isActive && (
-                <span
-                  className="absolute bottom-0 left-3 right-3 h-[2px] rounded-full"
-                  style={{ background: 'var(--accent)' }}
-                />
-              )}
-            </button>
-          )
-        })}
+      <div className="flex items-center justify-between gap-3 px-3 pt-2" style={{ borderBottom: '1px solid var(--border)' }}>
+        <div className="flex overflow-x-auto">
+          {TABS.map(tab => {
+            const isActive = active === tab.id
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setActive(tab.id)}
+                className="relative flex-shrink-0 rounded-t-md px-4 py-2.5 text-[12.5px] font-semibold whitespace-nowrap transition-colors"
+                style={{
+                  color: isActive ? 'var(--accent)' : 'var(--text-muted)',
+                  background: isActive ? 'var(--accent-surface)' : 'transparent',
+                }}
+                onMouseOver={e => {
+                  if (!isActive) e.currentTarget.style.color = 'var(--text-secondary)'
+                }}
+                onMouseOut={e => {
+                  if (!isActive) e.currentTarget.style.color = 'var(--text-muted)'
+                }}
+              >
+                {tab.label}
+                {isActive && (
+                  <span
+                    className="absolute bottom-0 left-3 right-3 h-[2px] rounded-full"
+                    style={{ background: 'var(--accent)' }}
+                  />
+                )}
+              </button>
+            )
+          })}
+        </div>
+        <div className="hidden text-[11px] md:block" style={{ color: 'var(--text-muted)' }}>
+          工作台看结论，深度分析看完整证据
+        </div>
       </div>
 
-      {/* Tab content */}
       <div className="p-5">
-        {active === 'overview'   && <OverviewTab analysis={analysis} />}
-        {active === 'chains'     && <ChainsTab parsed={parsed} analysis={analysis} />}
-        {active === 'indicators' && <IndicatorsTab analysis={analysis} />}
-        {active === 'steps'      && <StepsTab parsed={parsed} analysis={analysis} />}
-        {active === 'lineage'    && (
-          <LineageTab parsed={parsed} lineage={lineage} onLoadLineage={onLoadLineage} />
+        {active === 'workbench' && (
+          <WorkbenchTab
+            parsed={parsed}
+            analysis={analysis}
+            lineage={lineage}
+            onSelectTab={setActive}
+            onAskQuestion={askFromWorkbench}
+          />
         )}
-        {active === 'chat'       && (
+        {active === 'change' && (
+          <ChangeImpactTab
+            parsed={parsed}
+            analysis={analysis}
+            lineage={lineage}
+            onSelectTab={setActive}
+          />
+        )}
+        {active === 'deep' && (
+          <DeepAnalysisTab
+            parsed={parsed}
+            analysis={analysis}
+            lineage={lineage}
+            onLoadLineage={onLoadLineage}
+          />
+        )}
+        {active === 'chat' && (
           <ChatTab
             parsed={parsed}
             analysis={analysis}
             history={chatHistory}
             onHistoryChange={onChatHistory}
+            initialQuestion={chatPrompt}
           />
         )}
-        {active === 'export'     && <ExportTab parsed={parsed} analysis={analysis} />}
+        {active === 'export' && <ExportTab parsed={parsed} analysis={analysis} onExportRecord={onExportRecord} />}
       </div>
-    </div>
+    </section>
   )
 }

@@ -15,7 +15,7 @@
 
 ## 范围说明
 
-本记录用于 P0 收口基线。用户已确认真实 MySQL + FineReport DBTableData CPT 开发需要时间，因此真实数据库连接 CPT 全链路验证不阻塞 P0，移入 P1。
+本记录用于 P0 收口基线。用户已确认真实 MySQL + FineReport DBTableData CPT 开发需要时间，因此真实数据库连接 CPT 全链路验证不阻塞 P0。后续计划已调整为 P2 或更后。
 
 P0 收口判断只覆盖当前 React + FastAPI 本地工具主线：
 
@@ -88,14 +88,14 @@ P0 收口判断只覆盖当前 React + FastAPI 本地工具主线：
 
 FR-Agent P0 已达到“本地 React + FastAPI 主线可启动、可验证、可交接”的目标。当前产品已能完成从 CPT 上传、结构解析、AI 分析、问答到 Markdown / HTML 导出的闭环。
 
-真实 MySQL + FineReport DBTableData CPT 是验证客户场景可用性的必要工作，但不作为 P0 阻塞项。该项进入 P1，并应由 DB Subagent、Test Subagent、Review Subagent 协作完成。
+真实 MySQL + FineReport DBTableData CPT 是验证客户场景可用性的必要工作，但不作为 P0 或 P1 主线阻塞项。该项进入 P2 或更后，并应由 DB Subagent、Test Subagent、Review Subagent 协作完成。
 
 ## 进入 P1 的问题
 
 | 优先级 | 问题 | 影响 | 建议任务 |
 | --- | --- | --- | --- |
-| P1 | 真实 MySQL + FineReport DBTableData CPT 未验收 | 无法证明客户真实数据库连接场景完全可用 | 准备 MySQL 样例库和 FR 报表，跑完整 parse / enrich / analyze / chat / export |
+| P2 | 真实 MySQL + FineReport DBTableData CPT 未验收 | 无法证明客户真实数据库连接场景完全可用 | 准备 MySQL 样例库和 FR 报表，跑完整 parse / enrich / analyze / chat / export |
 | P1 | 公式坐标和实际字段位置需要更强校验 | AI 可能只能提示风险，不能自动确认公式引用 | 增强公式引用解析与单元格坐标映射 |
-| P1 | 多轮问答未系统测试 | 无法评估连续追问质量 | 增加 Chat 验收用例 |
+| P2 | 多轮问答未系统测试 | 无法评估连续追问质量 | 增加 Chat 验收用例 |
 | P1 | API smoke 尚未自动化 | 手工验证成本高 | 建立 parse / lineage / analyze / chat / export smoke test |
 | P1 | 评分系统尚未自动化 | 评分依赖人工 | 基于 P0 评分标准实现规则评分 MVP |

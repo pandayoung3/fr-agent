@@ -24,13 +24,13 @@
 | REQ-010 | 补齐 FastAPI 运行依赖 | Done | `requirements.txt` 已补齐主线依赖 |
 | REQ-011 | API contract 文档 | Done | 已建立 `docs/architecture/API_CONTRACT.md` |
 | REQ-012 | 固定样例验收流程 | Done | 已建立 P0 验收流程和 closure 评分记录 |
-| REQ-013 | Streamlit 下线方案 | Done | P0 先标记 deprecated，不直接删除；P1 再清理 |
+| REQ-013 | Streamlit 下线方案 | Done | `ui/app.py` 已添加 deprecated 注释和页面警告；依赖暂保留为历史入口 |
 | REQ-014 | 100 分交接可用性评分标准 | Done | P0 初版已定稿，先不自动化 |
-| REQ-015 | Parser 单元测试 | P1 | 保护解析能力 |
-| REQ-016 | API smoke test | P1 | 保护后端主线 |
-| REQ-017 | 前端 build / lint 固化 | P1 | 保护 React 主线 |
-| REQ-018 | 批量解析 CPT | P1 | 来自 devlog 后续方向 |
-| REQ-019 | 评分系统 MVP 自动化实现 | P1 | 基于 P0 初版评分标准实现 |
+| REQ-015 | Parser 单元测试 | Done | `tests/unit/` 已建立最小回归测试，统一由 `scripts/validate_p1.ps1` 执行 |
+| REQ-016 | API smoke test | Done | `tests/api/test_api_smoke.py` 覆盖 LLM 配置、评分和公式校验接口 |
+| REQ-017 | 前端 build / lint 固化 | Done | `scripts/validate_p1.ps1` 固化 `npm run lint` 与 `npm run build` |
+| REQ-018 | 批量解析 CPT | P2 | 等单 CPT 可视化理解体验稳定后再做批量资产管理 |
+| REQ-019 | 评分系统 MVP 自动化实现 | Done | `agent/scoring_engine.py` + `/api/score` + 前端 P1 质量面板 |
 | REQ-020 | MCP Server / 插件 | P2 | 平台嫁接方向 |
 | REQ-021 | 报表差异对比 | P2 | 迁移/重构增强 |
 | REQ-022 | Docker / 内网部署 | P2 | 团队使用增强 |
@@ -41,12 +41,20 @@
 | REQ-027 | P0 收口基线评分 | Done | `习题 8.cpt` 全链路评分 `86 / 100`，见 `docs/project/SCORING_REVIEW_P0_CLOSURE.md` |
 | REQ-028 | `.env` UTF-8 BOM 兼容 | Done | `api/main.py` 使用 `utf-8-sig` 读取并剥离隐藏 BOM |
 | REQ-029 | 导出文档模型名一致性 | Done | Markdown / HTML 导出读取运行时 `LLM_MODEL` |
-| REQ-030 | 真实 MySQL + FineReport DBTableData CPT 验证 | P1 | 用户确认不阻塞 P0；用于证明客户真实数据库连接场景 |
-| REQ-031 | 公式坐标与字段位置校验增强 | P1 | 当前能提示风险，但需更强自动校验 |
-| REQ-032 | 多轮问答验收用例 | P1 | 当前只验证单轮问题 |
+| REQ-030 | 真实 MySQL + FineReport DBTableData CPT 验证 | P2 | 用户确认该项 P2 或更后；用于证明客户真实数据库连接场景 |
+| REQ-031 | 公式坐标与字段位置校验增强 | Done | `agent/formula_validator.py` + `/api/validate/formulas`，覆盖引用坐标和风险函数 |
+| REQ-032 | 多轮问答验收用例 | P2 | P1 先保留单轮问答和 UI 联动入口，多轮系统验收后移 |
+| REQ-033 | 前端可视化报表理解工作台 | Done | `WorkbenchTab` 已上线，支持分层节点、关联高亮、节点详情和问答联动 |
+| REQ-034 | Obsidian 式 CPT / 数据资产图谱 | P2 | 批量 CPT 后续方向，用于客户报表管理和数据资产管理 |
+| REQ-035 | 多模型配置体验优化 | Done | 新增 `/api/llm/config`、`/api/llm/test` 和前端配置状态/测试入口 |
+| REQ-036 | 分析历史和导出记录 | Done | 已实现本地分析历史和本地导出记录，均保存在浏览器 `localStorage` |
+| REQ-037 | 变更定位与修改建议 | Done | 新增 `/api/change-impact` 和前端“变更建议”页，已补容错、API smoke 覆盖和 API Contract |
 
 ## 当前决策
 
 - P0 确认：先做稳定化和文档 / 依赖 / 验收，不做新业务功能。
-- Streamlit：P0 仅标记为历史 MVP / deprecated，不直接删除；删除或迁移进入 P1 后续清理。
+- Streamlit：已标记为历史 MVP / deprecated，并在旧入口加入页面警告；删除代码和依赖需单独确认。
 - 固定验收样例：暂不提交 CPT 文件入仓，避免脱敏和业务数据风险；P0 通过本地样例路径与评分记录保留证据。
+- P1 重心：前端 UI 从“导出文档为主”转为“可视化理解 CPT 为主”，导出成为辅助能力。
+- P1.5 方向：先完成“变更定位与修改建议”，帮助维护人员判断需求变化应修改哪些数据集、SQL、控件、字段、单元格或公式；半自动修改 CPT / 设计器操作暂不进入本周期。
+- 真实 MySQL CPT、批量 CPT、多轮问答验收移入 P2 或更后。

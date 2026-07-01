@@ -110,6 +110,6 @@ P0 后的样例验证默认启用 Test/Validation Subagent。该 subagent 不直
 
 2026-06-30，P0 以 `习题 8.cpt` 完成 React + FastAPI 主线全链路人工验收，评分 `86 / 100`，B 级。记录见 `docs/project/SCORING_REVIEW_P0_CLOSURE.md`。
 
-真实 MySQL + FineReport DBTableData CPT 全链路验证不阻塞 P0。该验证用于证明客户真实数据库连接场景，进入 P1 第一批任务。
+真实 MySQL + FineReport DBTableData CPT 全链路验证不阻塞 P0，也不作为 P1 主线。该验证用于证明客户真实数据库连接场景，进入 P2 或更后。
 
 P0 收口后，后续开发、测试、Bug 修复、Review 默认按 `docs/agents/MULTI_AGENT_WRITING_ARCHITECTURE.md` 引入 subagent。

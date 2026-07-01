@@ -90,18 +90,18 @@
 
 ## 开放问题
 
-- Streamlit 下线节奏仍待确认。
+- Streamlit 已完成 P1 deprecated 入口清理；最终删除代码和依赖仍需用户单独确认。
 - 平台嫁接保持 P2，优先考虑 MCP / 插件方向。
 - P0 全链路评分已改用 `习题 8.cpt` 完成，记录见 `docs/project/SCORING_REVIEW_P0_CLOSURE.md`。
-- 本地 MySQL + FineReport 真实 DBTableData 样例进入 P1，用户确认不阻塞 P0。
+- 本地 MySQL + FineReport 真实 DBTableData 样例进入 P2 或更后，用户确认不阻塞 P1。
 
 ## 建议下一步
 
-P0 主线验证已闭环，100 分评分标准已定稿，并已形成 `86 / 100` 的全链路收口基线。下一步进入 P1：优先准备真实 MySQL + FineReport DBTableData CPT、API smoke 自动化、公式坐标校验、多轮问答验收和评分系统 MVP。后续开发、测试、Bug 修复、Review 按 `docs/agents/MULTI_AGENT_WRITING_ARCHITECTURE.md` 默认启用对应 Codex subagent。
+P1 计划内事项已收口：前端可视化报表理解工作台、API smoke 自动化、Parser 单元测试、前端 build / lint 固化、公式坐标校验、评分系统 MVP、多模型配置体验、分析历史、导出记录、问答联动和 Streamlit deprecated 入口清理均已完成。真实 MySQL + FineReport DBTableData CPT、批量 CPT 解析、多轮问答系统验收移入 P2 或更后。后续开发、测试、Bug 修复、Review 按 `docs/agents/MULTI_AGENT_WRITING_ARCHITECTURE.md` 默认启用对应 Codex subagent。
 
 ## P0 收口基线（2026-06-30）
 
-P0 已收口为 React + FastAPI 本地工具基线。用户已确认真实 MySQL + FineReport DBTableData CPT 开发需要时间，因此该全链路验证移入 P1，不阻塞 P0。
+P0 已收口为 React + FastAPI 本地工具基线。用户已确认真实 MySQL + FineReport DBTableData CPT 开发需要时间，因此该全链路验证移入 P2 或更后，不阻塞 P1。
 
 最新 P0 全链路评分记录见 `docs/project/SCORING_REVIEW_P0_CLOSURE.md`：
 
@@ -110,13 +110,25 @@ P0 已收口为 React + FastAPI 本地工具基线。用户已确认真实 MySQL
 - 结果：`86 / 100`，B 级。
 - 结论：P0 可收口，进入 P1。
 
-P0 收口后剩余关键 P1 任务：
+P1 已完成事项：
+
+- 前端可视化报表理解工作台：图文结合、分层图谱、hover 解释、节点详情、关联高亮。
+- API smoke 自动化测试。
+- 公式坐标和字段位置校验。
+- Parser 单元测试。
+- 前端 build / lint 固化。
+- 基于 P0 评分标准实现评分系统 MVP。
+- 多模型配置体验优化。
+- 分析历史和导出记录。
+- 工作台节点与问答联动。
+- Streamlit deprecated 入口清理。
+
+P2 或更后：
 
 - 准备真实 MySQL + FineReport DBTableData CPT，并验证客户场景。
-- 建立 API smoke 自动化测试。
-- 增强公式坐标和字段位置校验。
-- 系统验证多轮问答。
-- 基于 P0 评分标准实现评分系统 MVP。
+- 批量 CPT 解析。
+- 多轮问答系统验收。
+- Obsidian 式 CPT / 数据资产图谱。
 
 Subagent 引入时机：
 

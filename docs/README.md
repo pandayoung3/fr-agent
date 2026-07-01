@@ -8,17 +8,20 @@
 2. `project/PROJECT_STATUS.md`
 3. `product/PRD.md`
 4. `product/REQUIREMENTS_BACKLOG.md`
-5. `project/DEVELOPMENT_SOP.md`
-6. `architecture/ARCHITECTURE.md`
-7. `architecture/API_CONTRACT.md`
-8. `agents/MULTI_AGENT_WRITING_ARCHITECTURE.md`
-9. `product/SCORING_SYSTEM_DRAFT.md`
-10. `templates/SCORING_REVIEW.md`
-11. `project/SPRINT_PLAN.md`
-12. `project/P0_VALIDATION.md`
-13. `project/STREAMLIT_DEPRECATION.md`
-14. `project/REAL_DB_VALIDATION_PLAN.md`
-15. `project/HANDOFF.md`
+5. `product/P1_UI_VISUALIZATION_REQUIREMENTS.md`
+6. `project/P1_INCREMENT_HANDOFF.md`
+7. `project/DEVELOPMENT_SOP.md`
+8. `architecture/ARCHITECTURE.md`
+9. `architecture/API_CONTRACT.md`
+10. `agents/MULTI_AGENT_WRITING_ARCHITECTURE.md`
+11. `product/SCORING_SYSTEM_DRAFT.md`
+12. `templates/SCORING_REVIEW.md`
+13. `project/SPRINT_PLAN.md`
+14. `project/P0_VALIDATION.md`
+15. `project/STREAMLIT_DEPRECATION.md`
+16. `project/STREAMLIT_P1_CLEANUP.md`
+17. `project/REAL_DB_VALIDATION_PLAN.md`
+18. `project/HANDOFF.md`
 
 ## 目录职责
 

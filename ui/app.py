@@ -8,6 +8,9 @@ import json
 import tempfile
 import pathlib
 
+# Deprecated: React + FastAPI is the maintained product surface.
+# Keep this Streamlit UI only as historical MVP reference.
+
 import pandas as pd
 import streamlit as st
 import streamlit.components.v1 as components
@@ -34,6 +37,11 @@ st.set_page_config(
     page_title="FR 报表交接 Agent",
     page_icon="📊",
     layout="wide",
+)
+
+st.warning(
+    "此 Streamlit 页面已归档为历史 MVP 入口。当前主线是 React + FastAPI；"
+    "请优先使用 http://127.0.0.1:5173/。"
 )
 
 # ── 全局 CSS：Vercel 紧凑设计系统 ──────────────────────────────────────────
