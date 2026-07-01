@@ -22,6 +22,7 @@ P2 按顺序推进：
 - 新增轻量资产关系视图，作为 Obsidian 式图谱的 P2 MVP 雏形。
 - 新增 `scripts/mysql_demo_schema.sql`，用于本地 MySQL 验证库初始化。
 - 新增 `scripts/validate_real_db_sample.py`，用于真实 DBTableData CPT 结构验收。
+- 新增 `scripts/prepare_chat_context.py`，用于从 CPT 生成多轮问答验收所需的 `parsed.json` / `analysis.json`。
 - 新增 `scripts/run_chat_acceptance.py`，用于多轮问答验收。
 - 更新 API Contract、需求池、项目状态和真实 DB 验证计划。
 
@@ -50,10 +51,16 @@ npm run build
 python scripts/validate_real_db_sample.py "D:\path\to\report.cpt" --fr-webinf-dir "D:\FineReport\webapps\webroot\WEB-INF" --passwords ".\local_passwords.json"
 ```
 
-多轮问答样例准备完成后运行：
+多轮问答样例准备完成后，先生成上下文文件：
 
 ```powershell
-python scripts/run_chat_acceptance.py --parsed-json ".\parsed.json" --analysis-json ".\analysis.json"
+python scripts/prepare_chat_context.py "D:\path\to\report.cpt" --out-dir ".\tmp\p2_chat_context" --analyze
+```
+
+然后运行：
+
+```powershell
+python scripts/run_chat_acceptance.py --parsed-json ".\tmp\p2_chat_context\parsed.json" --analysis-json ".\tmp\p2_chat_context\analysis.json"
 ```
 
 ## 风险与边界

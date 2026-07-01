@@ -148,6 +148,7 @@ P2 真实客户场景验证已具备脚本入口：
 
 - `scripts/mysql_demo_schema.sql`
 - `scripts/validate_real_db_sample.py`
+- `scripts/prepare_chat_context.py`
 - `scripts/run_chat_acceptance.py`
 
 仍需用户人工完成 FineReport 设计器中的 MySQL 连接配置、查询型/填报型 DBTableData CPT 制作和脱敏导出。
