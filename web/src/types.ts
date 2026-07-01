@@ -81,6 +81,31 @@ export interface ParsedReport {
   errors?: string[]
 }
 
+export interface BatchParseSummary {
+  report_type: 'query' | 'writeback' | string
+  dataset_count: number
+  db_dataset_count: number
+  widget_count: number
+  cell_binding_count: number
+  formula_count: number
+  db_connections: string[]
+}
+
+export interface BatchParseItem {
+  file_name: string
+  status: 'success' | 'failed'
+  parsed?: ParsedReport
+  summary?: BatchParseSummary
+  error?: string
+}
+
+export interface BatchParseResult {
+  total: number
+  success: number
+  failed: number
+  items: BatchParseItem[]
+}
+
 // ── 分析结果 ──────────────────────────────────────────────────────────────────
 
 export interface InteractionChain {

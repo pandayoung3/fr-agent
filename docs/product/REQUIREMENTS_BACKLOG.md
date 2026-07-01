@@ -29,7 +29,7 @@
 | REQ-015 | Parser 单元测试 | Done | `tests/unit/` 已建立最小回归测试，统一由 `scripts/validate_p1.ps1` 执行 |
 | REQ-016 | API smoke test | Done | `tests/api/test_api_smoke.py` 覆盖 LLM 配置、评分和公式校验接口 |
 | REQ-017 | 前端 build / lint 固化 | Done | `scripts/validate_p1.ps1` 固化 `npm run lint` 与 `npm run build` |
-| REQ-018 | 批量解析 CPT | P2 | 等单 CPT 可视化理解体验稳定后再做批量资产管理 |
+| REQ-018 | 批量解析 CPT | Done | P2 MVP 已实现 `/api/batch/parse`、批量上传入口、资产摘要和打开单报表工作台 |
 | REQ-019 | 评分系统 MVP 自动化实现 | Done | `agent/scoring_engine.py` + `/api/score` + 前端 P1 质量面板 |
 | REQ-020 | MCP Server / 插件 | P2 | 平台嫁接方向 |
 | REQ-021 | 报表差异对比 | P2 | 迁移/重构增强 |
@@ -41,11 +41,11 @@
 | REQ-027 | P0 收口基线评分 | Done | `习题 8.cpt` 全链路评分 `86 / 100`，见 `docs/project/SCORING_REVIEW_P0_CLOSURE.md` |
 | REQ-028 | `.env` UTF-8 BOM 兼容 | Done | `api/main.py` 使用 `utf-8-sig` 读取并剥离隐藏 BOM |
 | REQ-029 | 导出文档模型名一致性 | Done | Markdown / HTML 导出读取运行时 `LLM_MODEL` |
-| REQ-030 | 真实 MySQL + FineReport DBTableData CPT 验证 | P2 | 用户确认该项 P2 或更后；用于证明客户真实数据库连接场景 |
+| REQ-030 | 真实 MySQL + FineReport DBTableData CPT 验证 | P2-Ready | 已提供 demo schema 与验证脚本；仍需用户在 FineReport 制作真实 DBTableData CPT 后跑验收 |
 | REQ-031 | 公式坐标与字段位置校验增强 | Done | `agent/formula_validator.py` + `/api/validate/formulas`，覆盖引用坐标和风险函数 |
-| REQ-032 | 多轮问答验收用例 | P2 | P1 先保留单轮问答和 UI 联动入口，多轮系统验收后移 |
+| REQ-032 | 多轮问答验收用例 | P2-Ready | 已提供 `scripts/run_chat_acceptance.py`；需本地后端、LLM Key 和样例 parsed/analysis 执行验收 |
 | REQ-033 | 前端可视化报表理解工作台 | Done | `WorkbenchTab` 已上线，支持分层节点、关联高亮、节点详情和问答联动 |
-| REQ-034 | Obsidian 式 CPT / 数据资产图谱 | P2 | 批量 CPT 后续方向，用于客户报表管理和数据资产管理 |
+| REQ-034 | Obsidian 式 CPT / 数据资产图谱 | Done | P2 MVP 已在批量解析结果中提供轻量资产关系视图；完整 Obsidian 式图谱留 P3 |
 | REQ-035 | 多模型配置体验优化 | Done | 新增 `/api/llm/config`、`/api/llm/test` 和前端配置状态/测试入口 |
 | REQ-036 | 分析历史和导出记录 | Done | 已实现本地分析历史和本地导出记录，均保存在浏览器 `localStorage` |
 | REQ-037 | 变更定位与修改建议 | Done | 新增 `/api/change-impact` 和前端“变更建议”页，已补容错、API smoke 覆盖和 API Contract |
@@ -57,4 +57,4 @@
 - 固定验收样例：暂不提交 CPT 文件入仓，避免脱敏和业务数据风险；P0 通过本地样例路径与评分记录保留证据。
 - P1 重心：前端 UI 从“导出文档为主”转为“可视化理解 CPT 为主”，导出成为辅助能力。
 - P1.5 方向：先完成“变更定位与修改建议”，帮助维护人员判断需求变化应修改哪些数据集、SQL、控件、字段、单元格或公式；半自动修改 CPT / 设计器操作暂不进入本周期。
-- 真实 MySQL CPT、批量 CPT、多轮问答验收移入 P2 或更后。
+- P2 顺序：先同步 P1.5 基线，再完成批量 CPT 资产索引 MVP；真实 MySQL CPT 和多轮问答验收已具备脚本化入口，但最终证据依赖用户本地 FineReport CPT 和 LLM 环境。

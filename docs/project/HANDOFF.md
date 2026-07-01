@@ -134,3 +134,20 @@ Subagent 引入时机：
 
 - P0 收口阶段仅轻量启用 Review/Test Subagent 做文档和验收复核。
 - P1 起默认启用 subagent 协作；跨 Parser / API / UI / DB / LLM / Export 任意两个以上模块的任务，必须显式分配对应 subagent。
+
+## P2 增量状态（2026-07-02）
+
+P1.5 基线已推送到远端 `main`。P2 当前已完成批量 CPT 解析 MVP：
+
+- 后端：`POST /api/batch/parse`。
+- 前端：多文件上传、批量资产索引、轻量资产关系视图、打开单报表工作台。
+- 测试：API smoke 覆盖批量成功/部分失败/空文件。
+- 文档：API Contract、需求池、项目状态、真实 DB 验证计划已同步。
+
+P2 真实客户场景验证已具备脚本入口：
+
+- `scripts/mysql_demo_schema.sql`
+- `scripts/validate_real_db_sample.py`
+- `scripts/run_chat_acceptance.py`
+
+仍需用户人工完成 FineReport 设计器中的 MySQL 连接配置、查询型/填报型 DBTableData CPT 制作和脱敏导出。

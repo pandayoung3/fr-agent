@@ -1,12 +1,13 @@
 # API Contract
 
-版本：P1.5 React + FastAPI v2 主线
+版本：P2 React + FastAPI v2 主线
 
 ## 当前接口
 
 | Method | Path | 用途 | 输入 | 输出 |
 | --- | --- | --- | --- | --- |
 | POST | `/api/parse` | 上传并解析 CPT | multipart file `.cpt` | `ParsedReport` |
+| POST | `/api/batch/parse` | 批量上传并解析 CPT | multipart files `.cpt[]` | `BatchParseResult` |
 | POST | `/api/fr-connections` | 读取 FR 连接配置 | `{ fr_webinf_dir }` | connections map |
 | POST | `/api/enrich` | 数据库字段增强 | `{ parsed, fr_webinf_dir, passwords }` | `{ parsed, report }` |
 | POST | `/api/analyze` | LLM 分析 | `{ parsed }` | SSE progress / done / error |
@@ -65,6 +66,53 @@ file: report.cpt
 
 - 非 `.cpt` 文件返回 `400`。
 - Parser 异常应返回可读错误，不应让前端只看到空白失败。
+
+### `POST /api/batch/parse`
+
+请求：
+
+```text
+multipart/form-data
+files: report-a.cpt
+files: report-b.cpt
+```
+
+成功响应：
+
+```json
+{
+  "total": 2,
+  "success": 1,
+  "failed": 1,
+  "items": [
+    {
+      "file_name": "report-a.cpt",
+      "status": "success",
+      "parsed": {},
+      "summary": {
+        "report_type": "query",
+        "dataset_count": 2,
+        "db_dataset_count": 1,
+        "widget_count": 3,
+        "cell_binding_count": 12,
+        "formula_count": 2,
+        "db_connections": ["demo_mysql"]
+      }
+    },
+    {
+      "file_name": "notes.txt",
+      "status": "failed",
+      "error": "仅支持 .cpt 文件"
+    }
+  ]
+}
+```
+
+约束：
+
+- 批量解析只做结构解析和资产摘要，不默认调用 LLM，避免多文件场景消耗不可控。
+- 单个文件失败不能阻塞其他文件。
+- 成功项必须保留完整 `parsed`，供前端打开单报表工作台继续分析。
 
 ### `POST /api/fr-connections`
 
@@ -388,9 +436,10 @@ data: {"type":"done"}
 - 前端必须展示可读错误，不能只停留在 loading。
 - 数据库增强、LLM 分析和导出失败应能独立定位。
 
-## P1.5 状态
+## P2 状态
 
 - 已补最小请求/响应示例。
 - 已明确 SSE 最小事件格式。
 - 已补评分、公式校验、LLM 配置检测和变更定位接口。
-- TODO(CONFIRM): 是否将 FastAPI OpenAPI schema 作为 P1 平台化前置 contract。
+- 已补批量 CPT 解析接口，支持批量资产索引 MVP。
+- TODO(CONFIRM): 是否将 FastAPI OpenAPI schema 作为后续平台化前置 contract。

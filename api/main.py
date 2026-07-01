@@ -104,6 +104,50 @@ async def parse_endpoint(file: UploadFile = File(...)):
     """上传 CPT 文件，返回解析结构"""
     if not file.filename.endswith(".cpt"):
         raise HTTPException(400, "仅支持 .cpt 文件")
+    return await _parse_upload_file(file)
+
+
+@app.post("/api/batch/parse")
+async def batch_parse_endpoint(files: list[UploadFile] | None = File(default=None)):
+    """批量上传 CPT 文件，返回每个文件的解析摘要和完整 parsed。"""
+    if not files:
+        raise HTTPException(400, "请至少上传一个 .cpt 文件")
+
+    items = []
+    for file in files:
+        if not file.filename.endswith(".cpt"):
+            items.append({
+                "file_name": file.filename,
+                "status": "failed",
+                "error": "仅支持 .cpt 文件",
+            })
+            continue
+
+        try:
+            parsed = await _parse_upload_file(file)
+            items.append({
+                "file_name": file.filename,
+                "status": "success",
+                "parsed": parsed,
+                "summary": _batch_summary(parsed),
+            })
+        except Exception as e:
+            items.append({
+                "file_name": file.filename,
+                "status": "failed",
+                "error": str(e),
+            })
+
+    success = sum(1 for item in items if item["status"] == "success")
+    return {
+        "total": len(items),
+        "success": success,
+        "failed": len(items) - success,
+        "items": items,
+    }
+
+
+async def _parse_upload_file(file: UploadFile) -> dict:
     content = await file.read()
     with tempfile.NamedTemporaryFile(suffix=".cpt", delete=False) as tmp:
         tmp.write(content)
@@ -112,9 +156,31 @@ async def parse_endpoint(file: UploadFile = File(...)):
         summary = await asyncio.to_thread(parse_cpt, tmp_path)
         parsed = await asyncio.to_thread(summarize_to_dict, summary)
         parsed["file_name"] = file.filename  # 保留原始文件名
+        return parsed
     finally:
         os.unlink(tmp_path)
-    return parsed
+
+
+def _batch_summary(parsed: dict) -> dict:
+    datasets = parsed.get("datasets") if isinstance(parsed.get("datasets"), list) else []
+    widgets = parsed.get("widgets") if isinstance(parsed.get("widgets"), list) else []
+    cell_bindings = parsed.get("cell_bindings") if isinstance(parsed.get("cell_bindings"), list) else []
+    formulas = parsed.get("formula_cells") if isinstance(parsed.get("formula_cells"), list) else []
+    db_datasets = [dataset for dataset in datasets if isinstance(dataset, dict) and dataset.get("type") == "DBTableData"]
+    connections = [
+        dataset.get("db_connection")
+        for dataset in db_datasets
+        if isinstance(dataset, dict) and dataset.get("db_connection")
+    ]
+    return {
+        "report_type": parsed.get("report_type", "query"),
+        "dataset_count": len(datasets),
+        "db_dataset_count": len(db_datasets),
+        "widget_count": len(widgets),
+        "cell_binding_count": len(cell_bindings),
+        "formula_count": len(formulas),
+        "db_connections": sorted(set(connections)),
+    }
 
 
 @app.post("/api/fr-connections")

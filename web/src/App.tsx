@@ -1,12 +1,13 @@
 import { useState, useCallback } from 'react'
-import type { AppState, ParsedReport, AnalysisResult, ChatMessage } from './types'
+import type { AppState, ParsedReport, AnalysisResult, ChatMessage, BatchParseResult } from './types'
 import LandingPage from './pages/LandingPage'
-import { parseCpt, getLineage } from './api'
+import { parseCpt, parseBatchCpts, getLineage } from './api'
 import WorkflowBar from './components/WorkflowBar'
 import UploadZone from './components/UploadZone'
 import StatCards from './components/StatCards'
 import Sidebar from './components/Sidebar'
 import AnalyzePanel from './components/AnalyzePanel'
+import BatchAssetsPanel from './components/BatchAssetsPanel'
 import ResultTabs from './components/tabs/ResultTabs'
 import {
   loadAnalysisHistory,
@@ -41,6 +42,7 @@ function LogoMark() {
 export default function App() {
   const [showLanding, setShowLanding] = useState(true)
   const [state, setState] = useState<AppState>(INIT)
+  const [batchResult, setBatchResult] = useState<BatchParseResult | null>(null)
   const [analysisHistory, setAnalysisHistory] = useState<AnalysisHistoryItem[]>(() => loadAnalysisHistory())
   const [exportHistory, setExportHistory] = useState<ExportHistoryItem[]>(() => loadExportHistory())
 
@@ -49,6 +51,7 @@ export default function App() {
   }, [])
 
   async function handleFile(file: File) {
+    setBatchResult(null)
     update({ phase: 'uploading', error: null })
     try {
       const parsed = await parseCpt(file)
@@ -56,6 +59,32 @@ export default function App() {
     } catch (e) {
       update({ phase: 'idle', error: String(e) })
     }
+  }
+
+  async function handleFiles(files: File[]) {
+    if (files.length === 1) {
+      await handleFile(files[0])
+      return
+    }
+
+    update({ phase: 'uploading', error: null, parsed: null, analysis: null, lineage: null, chatHistory: [], streamLog: [] })
+    try {
+      const result = await parseBatchCpts(files)
+      setBatchResult(result)
+      update({ phase: 'idle' })
+    } catch (e) {
+      setBatchResult(null)
+      update({ phase: 'idle', error: String(e) })
+    }
+  }
+
+  function openBatchReport(parsed: ParsedReport) {
+    setBatchResult(null)
+    setState({
+      ...INIT,
+      phase: 'uploaded',
+      parsed,
+    })
   }
 
   function handleEnriched(enriched: ParsedReport) {
@@ -149,6 +178,7 @@ export default function App() {
           exportHistory={exportHistory}
           onEnriched={handleEnriched}
           onRestore={(item: AnalysisHistoryItem) => {
+            setBatchResult(null)
             setState({
               ...INIT,
               phase: 'done',
@@ -156,7 +186,10 @@ export default function App() {
               analysis: item.analysis,
             })
           }}
-          onReset={() => setState(INIT)}
+          onReset={() => {
+            setBatchResult(null)
+            setState(INIT)
+          }}
         />
 
         <main className="flex min-w-0 flex-1 flex-col gap-3">
@@ -189,7 +222,15 @@ export default function App() {
           )}
 
           {(state.phase === 'idle' || state.phase === 'uploading') && (
-            <UploadZone onFile={handleFile} loading={state.phase === 'uploading'} />
+            <UploadZone onFile={handleFile} onFiles={handleFiles} loading={state.phase === 'uploading'} />
+          )}
+
+          {batchResult && state.phase !== 'uploading' && (
+            <BatchAssetsPanel
+              result={batchResult}
+              onOpenReport={openBatchReport}
+              onClear={() => setBatchResult(null)}
+            />
           )}
 
           {state.parsed && (

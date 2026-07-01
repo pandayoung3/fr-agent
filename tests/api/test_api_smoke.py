@@ -1,4 +1,5 @@
 import unittest
+from unittest.mock import patch
 
 from fastapi.testclient import TestClient
 
@@ -30,6 +31,43 @@ class ApiSmokeTest(unittest.TestCase):
         self.assertEqual(formula_response.status_code, 200)
         self.assertGreaterEqual(score_response.json()["score"], 70)
         self.assertEqual(formula_response.json()["issue_count"], 1)
+
+    def test_batch_parse_endpoint_returns_asset_summary(self):
+        client = TestClient(app)
+
+        parsed = minimal_parsed()
+        parsed["datasets"][0]["type"] = "DBTableData"
+        parsed["datasets"][0]["db_connection"] = "demo_mysql"
+        parsed["formula_cells"] = [{"pos": "C1", "formula": "=SUM(B1)"}]
+
+        with (
+            patch("api.main.parse_cpt", return_value=object()),
+            patch("api.main.summarize_to_dict", return_value=parsed),
+        ):
+            response = client.post(
+                "/api/batch/parse",
+                files=[
+                    ("files", ("report-a.cpt", b"fake-cpt", "application/octet-stream")),
+                    ("files", ("notes.txt", b"not-cpt", "text/plain")),
+                ],
+            )
+
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(data["total"], 2)
+        self.assertEqual(data["success"], 1)
+        self.assertEqual(data["failed"], 1)
+        self.assertEqual(data["items"][0]["status"], "success")
+        self.assertEqual(data["items"][0]["summary"]["db_dataset_count"], 1)
+        self.assertEqual(data["items"][0]["summary"]["db_connections"], ["demo_mysql"])
+        self.assertEqual(data["items"][1]["status"], "failed")
+
+    def test_batch_parse_endpoint_rejects_empty_upload(self):
+        client = TestClient(app)
+
+        response = client.post("/api/batch/parse", files=[])
+
+        self.assertEqual(response.status_code, 400)
 
     def test_change_impact_endpoint_locates_widget(self):
         client = TestClient(app)

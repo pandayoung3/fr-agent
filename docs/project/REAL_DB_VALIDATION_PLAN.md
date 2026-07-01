@@ -95,6 +95,12 @@ password: 仅本地测试使用
 - 字段注释
 - 可作为筛选条件的维度字段
 
+仓库已提供初始化脚本：
+
+```powershell
+mysql -u root -p < scripts/mysql_demo_schema.sql
+```
+
 ### FineReport
 
 在 FineReport 中配置 MySQL JDBC 连接，并开发两份样例：
@@ -116,6 +122,34 @@ password: 仅本地测试使用
 8. 导出 Markdown / HTML。
 9. 按 `docs/templates/SCORING_REVIEW.md` 打分。
 
+### 脚本化验证
+
+查询型或填报型 CPT 导出后，可先跑结构验收：
+
+```powershell
+python scripts/validate_real_db_sample.py "D:\path\to\report.cpt" --fr-webinf-dir "D:\FineReport\webapps\webroot\WEB-INF" --passwords "{\"demo_mysql\":\"your_local_password\"}"
+```
+
+也可以把密码放在仅本地使用的 JSON 文件中：
+
+```json
+{
+  "demo_mysql": "your_local_password"
+}
+```
+
+然后执行：
+
+```powershell
+python scripts/validate_real_db_sample.py "D:\path\to\report.cpt" --fr-webinf-dir "D:\FineReport\webapps\webroot\WEB-INF" --passwords ".\local_passwords.json"
+```
+
+注意：
+
+- 密码文件不要提交入仓。
+- 该脚本只验证结构、字段元数据、血缘和评分，不读取业务数据行。
+- FineReport 设计器中制作 CPT、配置 JDBC 连接、导出 CPT 仍需人工完成。
+
 ## 通过标准
 
 真实 DBTableData 样例至少应满足：
@@ -131,6 +165,6 @@ password: 仅本地测试使用
 
 ## 建议优先级
 
-真实 MySQL + FineReport 样例验证进入 P2 或更后。当前 P1 优先优化单个 CPT 的前端可视化理解体验、测试自动化、公式校验和评分系统 MVP。
+真实 MySQL + FineReport 样例验证进入 P2。当前已具备 demo schema 和脚本化验收入口，最终通过标准需要用户提供真实 DBTableData CPT 后记录证据。
 
 该验证仍然是证明客户真实数据库连接场景的必要工作，但不阻塞 P1 的产品体验主线。

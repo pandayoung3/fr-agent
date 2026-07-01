@@ -2,6 +2,7 @@ import { useRef, useState } from 'react'
 
 interface Props {
   onFile: (file: File) => void
+  onFiles?: (files: File[]) => void
   loading: boolean
 }
 
@@ -37,14 +38,19 @@ function SpinnerIcon() {
   )
 }
 
-export default function UploadZone({ onFile, loading }: Props) {
+export default function UploadZone({ onFile, onFiles, loading }: Props) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [dragging, setDragging] = useState(false)
 
   function handleFiles(files: FileList | null) {
     if (!files) return
-    const file = Array.from(files).find(f => f.name.toLowerCase().endsWith('.cpt'))
-    if (file) onFile(file)
+    const cptFiles = Array.from(files).filter(f => f.name.toLowerCase().endsWith('.cpt'))
+    if (cptFiles.length === 0) return
+    if (cptFiles.length > 1 && onFiles) {
+      onFiles(cptFiles)
+      return
+    }
+    onFile(cptFiles[0])
   }
 
   const active = dragging || loading
@@ -97,7 +103,7 @@ export default function UploadZone({ onFile, loading }: Props) {
                 <p className="mt-2 max-w-[560px] text-[13px] leading-6" style={{ color: 'var(--text-secondary)' }}>
                   {loading
                     ? '系统正在读取报表结构、数据集、控件、单元格绑定和公式信息。'
-                    : '拖入 .cpt 文件，或点击此区域选择文件。解析完成后会进入摘要、AI 分析和血缘工作台。'}
+                    : '拖入一个或多个 .cpt 文件。单文件进入交接分析，多个文件生成批量资产索引。'}
                 </p>
               </div>
             </div>
@@ -116,7 +122,7 @@ export default function UploadZone({ onFile, loading }: Props) {
             className="grid grid-cols-3 gap-2"
             style={{ color: 'var(--text-muted)' }}
           >
-            {['FR 9/10/11', '单文件解析', '本地运行'].map(item => (
+            {['FR 9/10/11', '单/批量解析', '本地运行'].map(item => (
               <div
                 key={item}
                 className="rounded-md px-3 py-2 text-center text-[12px]"
@@ -132,6 +138,7 @@ export default function UploadZone({ onFile, loading }: Props) {
           ref={inputRef}
           type="file"
           accept=".cpt"
+          multiple
           className="hidden"
           onChange={e => handleFiles(e.target.files)}
         />
@@ -146,7 +153,7 @@ export default function UploadZone({ onFile, loading }: Props) {
             解析范围
           </div>
           <div className="mt-3 space-y-2">
-            {['数据集与 SQL', '参数控件', '单元格绑定', '公式与填报'].map(item => (
+            {['数据集与 SQL', '参数控件', '单元格绑定', '批量资产摘要'].map(item => (
               <div key={item} className="flex items-center gap-2 text-[12px]" style={{ color: 'var(--text-secondary)' }}>
                 <span className="h-1.5 w-1.5 rounded-full" style={{ background: 'var(--accent)' }} />
                 <span>{item}</span>

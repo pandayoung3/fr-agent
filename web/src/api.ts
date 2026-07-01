@@ -1,5 +1,6 @@
 import type {
   ParsedReport,
+  BatchParseResult,
   AnalysisResult,
   LineageResult,
   ChatMessage,
@@ -76,6 +77,14 @@ export async function parseCpt(file: File): Promise<ParsedReport> {
   form.append('file', file)
   const res = await fetch(`${BASE}/parse`, { method: 'POST', body: form })
   if (!res.ok) throw new Error(`解析失败 (${res.status})`)
+  return res.json()
+}
+
+export async function parseBatchCpts(files: File[]): Promise<BatchParseResult> {
+  const form = new FormData()
+  files.forEach(file => form.append('files', file))
+  const res = await fetch(`${BASE}/batch/parse`, { method: 'POST', body: form })
+  if (!res.ok) throw new Error(`批量解析失败 (${res.status})`)
   return res.json()
 }
 
