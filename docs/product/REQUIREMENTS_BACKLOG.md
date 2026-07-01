@@ -43,7 +43,7 @@
 | REQ-029 | 导出文档模型名一致性 | Done | Markdown / HTML 导出读取运行时 `LLM_MODEL` |
 | REQ-030 | 真实 MySQL + FineReport DBTableData CPT 验证 | P2-Ready | 已提供 demo schema 与验证脚本；仍需用户在 FineReport 制作真实 DBTableData CPT 后跑验收 |
 | REQ-031 | 公式坐标与字段位置校验增强 | Done | `agent/formula_validator.py` + `/api/validate/formulas`，覆盖引用坐标和风险函数 |
-| REQ-032 | 多轮问答验收用例 | P2-Ready | 已提供 `prepare_chat_context.py` 和 `run_chat_acceptance.py`；需本地后端、LLM Key 和样例 CPT 执行验收 |
+| REQ-032 | 多轮问答验收用例 | P2-Ready | 已提供 `prepare_chat_context.py`、`run_chat_acceptance.py` 和 `validate_p2.py`；需本地后端、LLM Key 和样例 CPT 执行验收 |
 | REQ-033 | 前端可视化报表理解工作台 | Done | `WorkbenchTab` 已上线，支持分层节点、关联高亮、节点详情和问答联动 |
 | REQ-034 | Obsidian 式 CPT / 数据资产图谱 | Done | P2 MVP 已在批量解析结果中提供轻量资产关系视图；完整 Obsidian 式图谱留 P3 |
 | REQ-035 | 多模型配置体验优化 | Done | 新增 `/api/llm/config`、`/api/llm/test` 和前端配置状态/测试入口 |

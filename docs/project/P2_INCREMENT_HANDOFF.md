@@ -24,6 +24,7 @@ P2 按顺序推进：
 - 新增 `scripts/validate_real_db_sample.py`，用于真实 DBTableData CPT 结构验收。
 - 新增 `scripts/prepare_chat_context.py`，用于从 CPT 生成多轮问答验收所需的 `parsed.json` / `analysis.json`。
 - 新增 `scripts/run_chat_acceptance.py`，用于多轮问答验收。
+- 新增 `scripts/validate_p2.py`，统一运行 P2 自动门禁，并可选串联真实 DB CPT 验收和多轮问答验收。
 - 更新 API Contract、需求池、项目状态和真实 DB 验证计划。
 
 ## 待人工完成
@@ -38,12 +39,10 @@ P2 按顺序推进：
 当前自动化验证应至少运行：
 
 ```powershell
-python -m compileall -q api agent parser scripts
-python -m unittest discover -s tests -t . -p "test_*.py" -v
-cd web
-npm run lint
-npm run build
+python scripts/validate_p2.py
 ```
+
+该命令会生成 `tmp/p2_validation_report.json`，默认只把自动化门禁作为 required gates；真实 DB 和多轮问答没有传参时会记录为 skipped optional gates。
 
 真实 DB CPT 准备完成后运行：
 
@@ -61,6 +60,12 @@ python scripts/prepare_chat_context.py "D:\path\to\report.cpt" --out-dir ".\tmp\
 
 ```powershell
 python scripts/run_chat_acceptance.py --parsed-json ".\tmp\p2_chat_context\parsed.json" --analysis-json ".\tmp\p2_chat_context\analysis.json"
+```
+
+也可以用总验收脚本串联：
+
+```powershell
+python scripts/validate_p2.py --real-db-cpt "D:\path\to\report.cpt" --fr-webinf-dir "D:\FineReport\webapps\webroot\WEB-INF" --passwords ".\local_passwords.json" --chat --analyze
 ```
 
 ## 风险与边界
